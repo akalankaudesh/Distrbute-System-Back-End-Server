@@ -1,0 +1,110 @@
+import Promise=require("promise");
+import {ItemDAO} from "../item-dao";
+import mysql=require("mysql");
+import {Pool, PoolConnection} from "mysql";
+import {Item} from "../../../entity/item";
+
+
+
+export class ItemDaoImpl implements ItemDAO{
+    constructor(private connection:PoolConnection){
+
+    }
+    
+    delete(id: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+
+            this.connection.query(`DELETE FROM items WHERE item_code='${id}'`,
+                (err, results) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results.affectedRows > 0);
+                    }
+
+                });
+        }); 
+       
+    }
+
+    find(id: string): Promise<Array<Item>> {
+
+        return new Promise((resolve, reject) => {
+
+            this.connection.query(`SELECT * FROM items WHERE item_code='${id}'`,
+                (err, results) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results);
+                    }
+
+                });
+        });
+
+    }
+
+    findAll(): Promise<Array<Item>> {
+        return new Promise((resolve, reject) => {
+
+            this.connection.query(`SELECT * FROM items`,
+                (err, results) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results);
+                    }
+
+                });
+        });
+    }
+
+    save(entity: Item): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+
+            this.connection.query(`INSERT INTO items VALUES ('${entity.item_code}','${entity.description}','${entity.unit_price}','${entity.qty}')`,
+                (err, results) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results.affectedRows > 0);
+                    }
+
+                });
+        });
+    }
+
+    update(entity: Item): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+
+            // console.log(`UPDATE items SET description = '${entity.description}', unit_price ='${entity.unitprice}' WHERE  item_code='${entity.itemcode}'`);
+            this.connection.query(`UPDATE items SET description = '${entity.description}', unit_price ='${entity.unit_price}' WHERE item_code='${entity.item_code}'`,
+                (err, results) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results.affectedRows > 0);
+                    }
+
+                });
+        });
+    }
+    count(): Promise<number> {
+        return new Promise((resolve, reject) =>{
+            this.connection.query(`SELECT COUNT(*) as count FROM items `,
+                (error,results)=>{
+                    if (error){
+                        reject(error);
+                    } else {
+                        resolve(results[0].count);
+                    }
+                });
+        } );
+    }
+    
+}
